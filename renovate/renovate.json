@@ -1,0 +1,35 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",	
+  "branchPrefix": "$username/",
+  "username": "$username",
+  "gitAuthor": "$name <$email.com>",
+  "onboarding": true,
+  "platform": "github",
+  "forkProcessing": "enabled",
+  "extends": ["config:recommended"],
+  "repositories": [
+    "$username/$repository"
+  ],
+  "golang": {
+    "enabled": true
+  },
+  "docker": {
+    "enabled": true
+  },
+  "packageRules": [
+  {
+    "matchDatasources": ["go"],
+    "groupName": "golang dependencies",
+    "labels": ["golang-deps"]
+  },
+  {
+    "matchDatasources": ["docker"],
+    "groupName": "docker dependencies",
+    "labels": ["docker-deps"]
+  }
+  ],
+  "dependencyDashboard": true,
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "semanticCommits": "enabled"
+}
