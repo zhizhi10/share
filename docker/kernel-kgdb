@@ -1,0 +1,48 @@
+cd ~/work/knet/linux-stable
+make clean
+make distclean
+make defconfig
+
+./qemu.sh x86-x86
+qemu-system-x86_64 -smp 4 -enable-kvm -m 4G -kernel /home/richard/work/knet/linux-stable//arch/x86/boot/bzImage -append "root=/dev/sda5 rw console=ttyS0" -netdev user,id=n1,ipv6=off,hostfwd=tcp::5555-:22 -device e1000,netdev=n1 -nographic -hda data/images/image.img
+
+ssh -p 5555 localhost  # can ssh to the vm
+
+
+KGDB
+
+./qemu.sh kgdb
+   # problem, break start_kernel, but source list is not matched
+    fixed: because we need,
+    CONFIG_DEBUG_INFO=y
+    CONFIG_DEBUG_KERNEL=y
+    CONFIG_GDB_SCRIPTS=y
+    https://newbedev.com/how-to-debug-the-linux-kernel-with-gdb-and-qemu
+    https://www.sobyte.net/post/2022-02/debug-linux-kernel-with-qemu-and-gdb/
+
+   # gdb pci-stub.c is basiclly ok, except some optimization
+
+gdb vmlinux
+target remote:1234
+set arch i386:x86-64:intel
+add-auto-load-safe-path .
+b start_kernel
+c
+
+lx-symbols
+
+
+# qemu pass usb device to vm
+
+# usbnet, mii, ax88179
+ Device Drivers
+   Network device support
+     USB Network Adapters
+       Multi-purpose USB Networking Framework
+
+usbnet                 45056  3 cdc_mbim,cdc_ncm,ax88179_178a
+mii                    16384  2 usbnet,ax88179_178a
+
+# review usbnet
+
+
