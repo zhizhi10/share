@@ -72,6 +72,30 @@ Generate the certificate using the `make` command
 make
 chown -Rv freerad:freerad .
 ```
+### 2.2 Generate a client certificate
+
+Modify `emailAddress` and `commonName` to your username in client.cnf
+
+Note: Because of the Makefile restrictions, the username must contain `@`.
+   
+If you need to manually generate, you need to take the commands in the Makefile and step them
+
+```
+[client]
+countryName             = FR
+stateOrProvinceName     = Radius
+localityName            = Somewhere
+organizationName        = Example Inc.
+emailAddress            = user1@mail.org
+commonName              = user1@mail.org
+```
+Run a command
+
+`make client`
+
+The `user1@mail.org.p12` certificate will then be generated, and you can modify and generate different client certificates
+
+You can then verify it using the `user1@mail.org.p12` certificate
 
 ### 2.2 Modify the configuration file
 only the default file needs to be modified
@@ -109,6 +133,7 @@ eap {
 		cipher_list = "HIGH"
 		cipher_server_preference = no
 		ecdh_curve = "prime256v1"
+        check_cert_cn = %{User-Name}
 
 		cache {		
 			name = "EAP-TLS"
@@ -147,14 +172,14 @@ eap {
 
 ```
 post-auth {
-    if ("%{User-Name}" == "user1") {
+    if ("%{User-Name}" == "user1@email.org") {
         update reply {
             Tunnel-Type = VLAN
             Tunnel-Medium-Type = IEEE-802
             Tunnel-Private-Group-Id = "101"
         }
     }
-    elsif ("%{User-Name}" == "user2") {
+    elsif ("%{User-Name}" == "user2@email.org") {
         update reply {
             Tunnel-Type = VLAN
             Tunnel-Medium-Type = IEEE-802
@@ -179,9 +204,9 @@ ip link set dev eth0.102 master brvlan102
 ```
 
 ### 3 Use another Raspberry PI to connect to this wifi
-Copy `client.p12` and `ca.pem` in freeradius to the machine to be connected
+Copy `user1@mail.org.p12` and `ca.pem` in freeradius to the machine to be connected
 I copied it to the root directory during testing
-Connect using nmcli
+Connect using `nmcli`
 ```
 nmcli connection add \
   type wifi \
@@ -191,10 +216,10 @@ nmcli connection add \
   mode infrastructure \
   wifi-sec.key-mgmt wpa-eap \
   802-1x.eap tls \
-  802-1x.identity user1 \
+  802-1x.identity user1@mail.org \
   802-1x.private-key-password whatever \
-  802-1x.client-cert "/root/client.p12" \
-  802-1x.private-key "/root/client.p12" \
+  802-1x.client-cert "/root/user1@mail.org.p12" \
+  802-1x.private-key "/root/user1@mail.org.p12" \
   802-1x.ca-cert "/root/ca.pem" \
   ipv4.method auto
 
@@ -212,10 +237,10 @@ nmcli connection add \
   mode infrastructure \
   wifi-sec.key-mgmt wpa-eap \
   802-1x.eap tls \
-  802-1x.identity user2 \
+  802-1x.identity user2@mail.org \
   802-1x.private-key-password whatever \
-  802-1x.client-cert "/root/client.p12" \
-  802-1x.private-key "/root/client.p12" \
+  802-1x.client-cert "/root/user2@mail.org.p12" \
+  802-1x.private-key "/root/user2@mail.org.p12" \
   802-1x.ca-cert "/root/ca.pem" \
   ipv4.method auto
 
